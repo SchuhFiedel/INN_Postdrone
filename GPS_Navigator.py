@@ -1,6 +1,8 @@
-import os.path
-import os
+
 import errno
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
 
 
 def get_target():
@@ -14,8 +16,7 @@ def get_target():
         print("error")
         if e.errno == errno.EACCES:
             return "some default data"
-            # Not a permission error.
-        raise
+        raise e
     finally:
         f.close()
 
@@ -45,7 +46,7 @@ try:
     own_position = get_position()
     target_position = get_target()
 
-    movement.append( target_position[0] - own_position[0])
+    movement.append(target_position[0] - own_position[0])
     movement.append(target_position[1] - own_position[1])
 
     if movement[0] > 0:
@@ -62,3 +63,19 @@ try:
 
 except IOError as e:
     print("Error: ", e)
+    exit
+d = {'longitude': [own_position[0], target_position[0]],'latitude': [own_position[1], target_position[1]]}
+df = pd.DataFrame(data=d)
+
+
+BBox = (16.37627, 16.38611, 48.23807, 48.24339)
+City_map = plt.imread("map.jpg")
+fig, ax = plt.subplots(figsize = (8,7))
+print(df)
+ax.scatter( df.latitude, df.longitude, s=10, c='red', alpha = 1)
+ax.set_title('Waypoints Where Is Where Go')
+ax.set_xlim(BBox[0], BBox[1])
+ax.set_ylim(BBox[2], BBox[3])
+ax.imshow(City_map, zorder=0, extent=BBox)
+plt.show()
+
