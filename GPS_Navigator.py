@@ -5,19 +5,21 @@ import matplotlib.pyplot as plt
 from threading import Thread, Lock
 import time
 
-#Merken, 1ster Wert = Y, 2ter Wert = x für GPS
+
+# Merken, 1ster Wert = Y, 2ter Wert = x für GPS
 class Navigator:
 
     def __init__(self):
         self.Target_position = self.update_target()
         self.GPS_FP = open("GPS_Interface.txt", "r")
-        #self.Update_Thread = Thread(target=self.loop_update_target())
-        #self.Update_Thread.start()
+      #  self.Own_position = self.update_position()
+        self.Update_Thread = Thread(target=self.loop_update_target, args=())
+        self.Update_Thread.start()
 
     def loop_update_target(self):
         while self.Active == 1:
             self.Mutex.acquire()
-            self.update_target()
+            self.Own_position = self.update_position()
             self.Mutex.release()
             time.sleep(0.1)
 
@@ -88,25 +90,27 @@ class Navigator:
             returnval = np.rad2deg(vector_rad)
             if movement_vector[1] < 0:
                 returnval = abs(returnval - 360)
-            #Wenn wir mir Einheitskreis rechenn dann muss der Returnval + 90 modulo 360
+            # Wenn wir mir Einheitskreis rechenn dann muss der Returnval + 90 modulo 360
             return returnval
         except TypeError as e:
             print("error", e)
             raise
 
-    #general program object
+    # general program object
     Active = 1
     GPS_FP = 0
     Update_Thread = 0
     Mutex = Lock()
 
-    #initiate Vectors for movement
+    # initiate Vectors for movement
     Own_position = []
     Target_position = []
-    Movement = [] #Movementvector to reach target
+    Movement = []  # Movementvector to reach target
     Angle_to_target = 0
 
     def display_plot(self):
+
+        self.Mutex.acquire()
         d = {'Latitude': [self.Own_position[0], self.Target_position[0]],
              'Longitude': [self.Own_position[1], self.Target_position[1]]}
         df = pd.DataFrame(data=d)
@@ -130,7 +134,7 @@ class Navigator:
         # Calculate the Movement Vector
         try:
             # fetch Position and targets
-            self.Own_position = self.update_position()
+          #  self.Own_position = self.update_position()
 
             # Calculate Movement(Velocity) vector
             self.Movement.append(self.Target_position[0] - self.Own_position[0])
@@ -150,7 +154,8 @@ class Navigator:
             else:
                 y_direction = 'w'
 
-            print("Drone need to go: ", x_direction + y_direction, " Position: ", self.Own_position, self.Target_position, self.Movement)
+            print("Drone need to go: ", x_direction + y_direction, " Position: ", self.Own_position,
+                  self.Target_position, self.Movement)
 
         except IOError as e:
             print("Error: ", e)
@@ -176,7 +181,10 @@ class Navigator:
             print("error found")
         if should_display:
             self.display_plot()
+        self.Active = 0
+        self.Mutex.release()
 
 
 A = Navigator()
+time.sleep(1)
 A.plot_course(should_display=True)
