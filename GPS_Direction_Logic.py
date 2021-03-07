@@ -8,11 +8,17 @@ import time
 
 # Merken, 1ster Wert = Y, 2ter Wert = x für GPS
 class GPS_Direction_Logic:
-    def __init__(self):
+    def __init__(self, offset: float):
         self.Target_position = self.update_target()
+        self.__Offset = offset
         #self.Own_position = self.update_position()
         #self.Update_Thread = Thread(target=self.loop_update_target, args=())
         #self.Update_Thread.start()
+
+    def update_Offset(self,  offset: float):
+        self.__Offset = offset
+    def update_Position(self, Position: list):
+        self.__Current_Position = Position
 
     #Coninously update the self position
     # def loop_update_target(self):
@@ -42,13 +48,12 @@ class GPS_Direction_Logic:
             target_fp = open("GPS_Interface.txt", "rt")
             current_position_string = target_fp.read()
             tmp = current_position_string.split(',')
-            self.Current_Position = [tmp[0], tmp[1]]
+            self.__Current_Position = [tmp[0], tmp[1]]
         except IOError as e:
             print("error")
             if e.errno == errno.EACCES:
                 return "some default data"
             raise e
-
 
     def vector_length(self, vector):
         try:
@@ -60,7 +65,6 @@ class GPS_Direction_Logic:
             return sumation
         except:
             print("error")
-
             raise
 
     #normalize the movement vector
@@ -108,23 +112,22 @@ class GPS_Direction_Logic:
     # general program object
     Active = 1
     GPS_FP = 0
-    Update_Thread = 0
-    Mutex = Lock()
+
 
     # initiate Vectors for movement
-    Current_Position = [0,0]
+    __Current_Position = [0, 0]
     Target_position = []
     Movement = []  # Movementvector to reach target
     Angle_to_target = 0
 
     #when the x, y Current Pos coordinates are close enough so target+offset>pos>target-offset
-    allowed_offset = 0.2
+    __Offset = 0.2
 
     def display_plot(self):
 
 
-        d = {'Latitude': [self.Current_Position[0], self.Target_position[0]],
-             'Longitude': [self.Current_Position[1], self.Target_position[1]]}
+        d = {'Latitude': [self.__Current_Position[0], self.Target_position[0]],
+             'Longitude': [self.__Current_Position[1], self.Target_position[1]]}
         df = pd.DataFrame(data=d)
 
         # Plot Graph for easier Display
@@ -143,15 +146,13 @@ class GPS_Direction_Logic:
        #self.update_position()
         if type(should_display) != bool:
             raise AttributeError
-
+        print(self.__Current_Position)
         # Calculate the Movement Vector
         try:
-            #fetch Position and targets
-            #self.Own_position = self.update_position()
             self.Movement = []
             # Calculate Movement(Velocity) vector
-            self.Movement.append(self.Target_position[0] - self.Current_Position[0])
-            self.Movement.append(self.Target_position[1] - self.Current_Position[1])
+            self.Movement.append(self.Target_position[0] - self.__Current_Position[0])
+            self.Movement.append(self.Target_position[1] - self.__Current_Position[1])
 
         except IOError as e:
             print("Error: ", e)
@@ -176,8 +177,8 @@ class GPS_Direction_Logic:
         if should_display:
             self.display_plot()
         self.Active = 0
-        if (self.Target_position[0]+self.allowed_offset>self.Current_Position[0] > self.Target_position[0]-self.allowed_offset and
-                self.Target_position[1]+self.allowed_offset>self.Current_Position[1] > self.Target_position[1]-self.allowed_offset):
+        if (self.Target_position[0]+self.__Offset>self.__Current_Position[0] > self.Target_position[0]-self.__Offset and
+                self.Target_position[1]+self.__Offset>self.__Current_Position[1] > self.Target_position[1]-self.__Offset):
             return -1
         return self.Angle_to_target
 
