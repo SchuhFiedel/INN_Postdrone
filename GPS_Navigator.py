@@ -15,6 +15,7 @@ class GPS_Direction_Logic:
         self.Update_Thread = Thread(target=self.loop_update_target, args=())
         self.Update_Thread.start()
 
+    #Coninously update the self position
     def loop_update_target(self):
         while self.Active == 1:
             self.Mutex.acquire()
@@ -22,6 +23,7 @@ class GPS_Direction_Logic:
             self.Mutex.release()
             time.sleep(0.1)
 
+    #get the new target from Update_target
     def update_target(self):
         try:
             target_fp = open("Target.txt", "r")
@@ -34,6 +36,7 @@ class GPS_Direction_Logic:
             if e.errno == errno.EACCES:
                 return "some default data"
             raise e
+
 
     def update_position(self):
         try:
@@ -50,6 +53,7 @@ class GPS_Direction_Logic:
         finally:
             self.GPS_FP.seek(0)
 
+
     def vector_length(self, vector):
         try:
             sumation = 0
@@ -63,6 +67,7 @@ class GPS_Direction_Logic:
 
             raise
 
+    #normalize the movement vector
     def vector_normalize(self, vector_len, vector):
         try:
             return_values = []
@@ -71,9 +76,9 @@ class GPS_Direction_Logic:
             return return_values
         except:
             print("error")
-
             raise
 
+    #Calculate Radion of a Vector
     def calc_rad(self, vector_len, movement_vector):
         try:
             y_val = movement_vector[0] / vector_len
@@ -83,7 +88,7 @@ class GPS_Direction_Logic:
         except TypeError as e:
             print("error", e)
             raise
-
+    #convert Radian to degree
     def rad_to_ang(self, vector_rad, movement_vector):
         try:
             returnval = np.rad2deg(vector_rad)
@@ -95,6 +100,15 @@ class GPS_Direction_Logic:
             print("error", e)
             raise
 
+    #Print The calculated Angle to a file
+    def return_output(self, output: str):
+        try:
+            f = open("Output.txt", "wt")
+            f.write(output)
+        except TypeError as e:
+            print("error", e)
+            raise
+        return
     # general program object
     Active = 1
     GPS_FP = 0
@@ -107,15 +121,18 @@ class GPS_Direction_Logic:
     Movement = []  # Movementvector to reach target
     Angle_to_target = 0
 
+    #when the x, y Current Pos coordinates are close enough so target+offset>pos>target-offset
+    allowed_offset = 0.2
+
     def display_plot(self):
 
-        self.Mutex.acquire()
+
         d = {'Latitude': [self.Own_position[0], self.Target_position[0]],
              'Longitude': [self.Own_position[1], self.Target_position[1]]}
         df = pd.DataFrame(data=d)
 
         # Plot Graph for easier Display
-        BBox = (16.37627, 16.38611, 48.23807, 48.24339)
+        BBox = (min(d['Longitude'])-0.002, max(d['Longitude'])+0.002, min(d['Latitude'])-0.002, max(d['Latitude'])+0.002)
         city_map = plt.imread("map.jpg")
         fig, ax = plt.subplots(figsize=(8, 7))
         print(df)
@@ -131,6 +148,7 @@ class GPS_Direction_Logic:
             raise AttributeError
 
         # Calculate the Movement Vector
+        self.Mutex.acquire()
         try:
             # fetch Position and targets
           #  self.Own_position = self.update_position()
@@ -139,51 +157,37 @@ class GPS_Direction_Logic:
             self.Movement.append(self.Target_position[0] - self.Own_position[0])
             self.Movement.append(self.Target_position[1] - self.Own_position[1])
 
-            if self.Movement[0] + self.Movement[1] == 0:
-                print("Error: Values match, no movement possible")
-                exit()
-
-            if self.Movement[0] > 0:
-                x_direction = 'n'
-            else:
-                x_direction = 's'
-
-            if self.Movement[1] > 0:
-                y_direction = 'e'
-            else:
-                y_direction = 'w'
-
-            print("Drone need to go: ", x_direction + y_direction, " Position: ", self.Own_position,
-                  self.Target_position, self.Movement)
-
         except IOError as e:
             print("Error: ", e)
             raise
-
-        # Create Pandas DF for Display
-
-        # Calculate Length and Normalize vector
         try:
-            print(self.Movement)
+        #    print(self.Movement)
             movement_length = self.vector_length(self.Movement)
-            print("VectorLength: ", type(movement_length), " ", movement_length)
+         #   print("VectorLength: ", type(movement_length), " ", movement_length)
             movement_normalized = self.vector_normalize(movement_length, self.Movement)
             print(movement_normalized)
-            print(movement_normalized[0] * movement_length)
+          #  print(movement_normalized[0] * movement_length)
             movement_radiant = self.calc_rad(movement_length, self.Movement)
-            print("Radiant: ", movement_radiant)
+         #   print("Radiant: ", movement_radiant)
             movement_angle = self.rad_to_ang(movement_radiant, self.Movement)
 
-            print("Angle: ", movement_angle)
+         #   print("Angle: ", movement_angle)
             self.Angle_to_target = movement_angle
+            self.return_output(self.Angle_to_target.astype('str'))
         except:
             print("error found")
         if should_display:
             self.display_plot()
-        self.Active = 0
+        #self.Active = 0
         self.Mutex.release()
+        return self.Angle_to_target
+
+    def fly_to_target(self):
+        if (self.Target_position[0]+self.allowed_offset>self.Own_position[0] > self.Target_position[0]-self.allowed_offset and
+                self.Target_position[1]+self.allowed_offset>self.Own_position[1] > self.Target_position[1]-self.allowed_offset):
+            print("Target Reached")
+            self.Active = 0
+        while(self.Active != 0):
+            self.plot_course()
 
 
-A = Navigator()
-time.sleep(1)
-A.plot_course(should_display=True)
