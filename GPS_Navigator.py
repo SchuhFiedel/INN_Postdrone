@@ -7,8 +7,7 @@ import time
 
 
 # Merken, 1ster Wert = Y, 2ter Wert = x für GPS
-class Navigator:
-
+class GPS_Direction_Logic:
     def __init__(self):
         self.Target_position = self.update_target()
         self.GPS_FP = open("GPS_Interface.txt", "r")
