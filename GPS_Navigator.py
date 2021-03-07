@@ -11,7 +11,7 @@ class GPS_Direction_Logic:
     def __init__(self):
         self.Target_position = self.update_target()
         self.GPS_FP = open("GPS_Interface.txt", "r")
-      #  self.Own_position = self.update_position()
+      # self.Own_position = self.update_position()
         self.Update_Thread = Thread(target=self.loop_update_target, args=())
         self.Update_Thread.start()
 
@@ -82,7 +82,7 @@ class GPS_Direction_Logic:
     def calc_rad(self, vector_len, movement_vector):
         try:
             y_val = movement_vector[0] / vector_len
-            print("Y_Val", y_val)
+            #print("Y_Val", y_val)
             return_value = np.arccos(y_val)
             return return_value
         except TypeError as e:
@@ -152,7 +152,7 @@ class GPS_Direction_Logic:
         try:
             # fetch Position and targets
           #  self.Own_position = self.update_position()
-
+            self.Movement = []
             # Calculate Movement(Velocity) vector
             self.Movement.append(self.Target_position[0] - self.Own_position[0])
             self.Movement.append(self.Target_position[1] - self.Own_position[1])
@@ -161,33 +161,34 @@ class GPS_Direction_Logic:
             print("Error: ", e)
             raise
         try:
-        #    print(self.Movement)
+            movement_normalized = []
+            #print(self.Movement)
             movement_length = self.vector_length(self.Movement)
-         #   print("VectorLength: ", type(movement_length), " ", movement_length)
+            #print("VectorLength: ", type(movement_length), " ", movement_length)
             movement_normalized = self.vector_normalize(movement_length, self.Movement)
-            print(movement_normalized)
-          #  print(movement_normalized[0] * movement_length)
+            #print(movement_normalized)
+            #print(movement_normalized[0] * movement_length)
             movement_radiant = self.calc_rad(movement_length, self.Movement)
-         #   print("Radiant: ", movement_radiant)
+            #print("Radiant: ", movement_radiant)
             movement_angle = self.rad_to_ang(movement_radiant, self.Movement)
 
-         #   print("Angle: ", movement_angle)
+            print("Angle: ", movement_angle)
             self.Angle_to_target = movement_angle
             self.return_output(self.Angle_to_target.astype('str'))
         except:
             print("error found")
         if should_display:
             self.display_plot()
-        #self.Active = 0
+        self.Active = 0
         self.Mutex.release()
         return self.Angle_to_target
 
-    def fly_to_target(self):
-        if (self.Target_position[0]+self.allowed_offset>self.Own_position[0] > self.Target_position[0]-self.allowed_offset and
-                self.Target_position[1]+self.allowed_offset>self.Own_position[1] > self.Target_position[1]-self.allowed_offset):
-            print("Target Reached")
-            self.Active = 0
-        while(self.Active != 0):
-            self.plot_course()
+    # def fly_to_target(self):
+    #     if (self.Target_position[0]+self.allowed_offset>self.Own_position[0] > self.Target_position[0]-self.allowed_offset and
+    #             self.Target_position[1]+self.allowed_offset>self.Own_position[1] > self.Target_position[1]-self.allowed_offset):
+    #         print("Target Reached")
+    #         self.Active = 0
+    #     while(self.Active != 0):
+    #         self.plot_course()
 
 
