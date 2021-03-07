@@ -10,16 +10,15 @@ import time
 class GPS_Direction_Logic:
     def __init__(self):
         self.Target_position = self.update_target()
-        self.GPS_FP = open("GPS_Interface.txt", "r")
-      # self.Own_position = self.update_position()
-        self.Update_Thread = Thread(target=self.loop_update_target, args=())
-        self.Update_Thread.start()
+        #self.Own_position = self.update_position()
+        #self.Update_Thread = Thread(target=self.loop_update_target, args=())
+        #self.Update_Thread.start()
 
     #Coninously update the self position
     def loop_update_target(self):
         while self.Active == 1:
             self.Mutex.acquire()
-            self.Own_position = self.update_position()
+            self.Current_Position = self.update_position()
             self.Mutex.release()
             time.sleep(0.1)
 
@@ -40,18 +39,15 @@ class GPS_Direction_Logic:
 
     def update_position(self):
         try:
-            current_position_string = self.GPS_FP.read()
+            target_fp = open("GPS_Interface.txt", "r")
+            current_position_string = target_fp.read()
             x_local_position, y_local_position = current_position_string.split(',')
-            return_value = [float(x_local_position), float(y_local_position)]
-            return return_value
+            self.Current_Position = [float(x_local_position), float(y_local_position)]
         except IOError as e:
             print("error")
             if e.errno == errno.EACCES:
                 return "some default data"
-                # Not a permission error.
             raise e
-        finally:
-            self.GPS_FP.seek(0)
 
 
     def vector_length(self, vector):
@@ -116,7 +112,7 @@ class GPS_Direction_Logic:
     Mutex = Lock()
 
     # initiate Vectors for movement
-    Own_position = []
+    Current_Position = []
     Target_position = []
     Movement = []  # Movementvector to reach target
     Angle_to_target = 0
@@ -127,8 +123,8 @@ class GPS_Direction_Logic:
     def display_plot(self):
 
 
-        d = {'Latitude': [self.Own_position[0], self.Target_position[0]],
-             'Longitude': [self.Own_position[1], self.Target_position[1]]}
+        d = {'Latitude': [self.Current_Position[0], self.Target_position[0]],
+             'Longitude': [self.Current_Position[1], self.Target_position[1]]}
         df = pd.DataFrame(data=d)
 
         # Plot Graph for easier Display
@@ -144,18 +140,18 @@ class GPS_Direction_Logic:
         plt.show()
 
     def plot_course(self, should_display=False):
+        self.update_position()
         if type(should_display) != bool:
             raise AttributeError
 
         # Calculate the Movement Vector
-        self.Mutex.acquire()
         try:
-            # fetch Position and targets
-          #  self.Own_position = self.update_position()
+            #fetch Position and targets
+            #self.Own_position = self.update_position()
             self.Movement = []
             # Calculate Movement(Velocity) vector
-            self.Movement.append(self.Target_position[0] - self.Own_position[0])
-            self.Movement.append(self.Target_position[1] - self.Own_position[1])
+            self.Movement.append(self.Target_position[0] - self.Current_Position[0])
+            self.Movement.append(self.Target_position[1] - self.Current_Position[1])
 
         except IOError as e:
             print("Error: ", e)
@@ -180,9 +176,8 @@ class GPS_Direction_Logic:
         if should_display:
             self.display_plot()
         self.Active = 0
-        self.Mutex.release()
-        if (self.Target_position[0]+self.allowed_offset>self.Own_position[0] > self.Target_position[0]-self.allowed_offset and
-                self.Target_position[1]+self.allowed_offset>self.Own_position[1] > self.Target_position[1]-self.allowed_offset):
+        if (self.Target_position[0]+self.allowed_offset>self.Current_Position[0] > self.Target_position[0]-self.allowed_offset and
+                self.Target_position[1]+self.allowed_offset>self.Current_Position[1] > self.Target_position[1]-self.allowed_offset):
             return -1
         return self.Angle_to_target
 

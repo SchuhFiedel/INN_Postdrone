@@ -10,7 +10,7 @@ A = GPS_Navigator.GPS_Direction_Logic()
 
 while True:
     sentdata = A.plot_course()
-    sock.SendData('Sent from Python: ' + str(sentdata)) # Send this string to other application
+    sock.SendData(str(sentdata)) # Send this string to other application
 
     data = sock.ReadReceivedData() # read data
 
