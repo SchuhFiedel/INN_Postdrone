@@ -181,6 +181,9 @@ class GPS_Direction_Logic:
             self.display_plot()
         self.Active = 0
         self.Mutex.release()
+        if (self.Target_position[0]+self.allowed_offset>self.Own_position[0] > self.Target_position[0]-self.allowed_offset and
+                self.Target_position[1]+self.allowed_offset>self.Own_position[1] > self.Target_position[1]-self.allowed_offset):
+            return -1
         return self.Angle_to_target
 
     # def fly_to_target(self):
