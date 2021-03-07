@@ -15,12 +15,12 @@ class GPS_Direction_Logic:
         #self.Update_Thread.start()
 
     #Coninously update the self position
-    def loop_update_target(self):
-        while self.Active == 1:
-            self.Mutex.acquire()
-            self.Current_Position = self.update_position()
-            self.Mutex.release()
-            time.sleep(0.1)
+    # def loop_update_target(self):
+    #     while self.Active == 1:
+    #         self.Mutex.acquire()
+    #         self.Current_Position = self.update_position()
+    #         self.Mutex.release()
+    #         time.sleep(0.1)
 
     #get the new target from Update_target
     def update_target(self):
@@ -39,10 +39,10 @@ class GPS_Direction_Logic:
 
     def update_position(self):
         try:
-            target_fp = open("GPS_Interface.txt", "r")
+            target_fp = open("GPS_Interface.txt", "rt")
             current_position_string = target_fp.read()
-            x_local_position, y_local_position = current_position_string.split(',')
-            self.Current_Position = [float(x_local_position), float(y_local_position)]
+            tmp = current_position_string.split(',')
+            self.Current_Position = [tmp[0], tmp[1]]
         except IOError as e:
             print("error")
             if e.errno == errno.EACCES:
@@ -112,7 +112,7 @@ class GPS_Direction_Logic:
     Mutex = Lock()
 
     # initiate Vectors for movement
-    Current_Position = []
+    Current_Position = [0,0]
     Target_position = []
     Movement = []  # Movementvector to reach target
     Angle_to_target = 0
@@ -140,7 +140,7 @@ class GPS_Direction_Logic:
         plt.show()
 
     def plot_course(self, should_display=False):
-        self.update_position()
+       #self.update_position()
         if type(should_display) != bool:
             raise AttributeError
 
