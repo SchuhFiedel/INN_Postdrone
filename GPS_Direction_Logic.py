@@ -20,6 +20,7 @@ class GPS_Direction_Logic:
     def update_Position(self, Position: list):
         self.__Current_Position = Position
 
+
     #Coninously update the self position
     # def loop_update_target(self):
     #     while self.Active == 1:
@@ -115,7 +116,7 @@ class GPS_Direction_Logic:
 
 
     # initiate Vectors for movement
-    __Current_Position = [0, 0]
+    __Current_Position = [50,-24]
     Target_position = []
     Movement = []  # Movementvector to reach target
     Angle_to_target = 0
@@ -181,13 +182,4 @@ class GPS_Direction_Logic:
                 self.Target_position[1]+self.__Offset>self.__Current_Position[1] > self.Target_position[1]-self.__Offset):
             return -1
         return self.Angle_to_target
-
-    # def fly_to_target(self):
-    #     if (self.Target_position[0]+self.allowed_offset>self.Own_position[0] > self.Target_position[0]-self.allowed_offset and
-    #             self.Target_position[1]+self.allowed_offset>self.Own_position[1] > self.Target_position[1]-self.allowed_offset):
-    #         print("Target Reached")
-    #         self.Active = 0
-    #     while(self.Active != 0):
-    #         self.plot_course()
-
 

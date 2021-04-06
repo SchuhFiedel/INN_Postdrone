@@ -4,7 +4,7 @@ import UdpComms as U
 import time
 Mutex = Lock()
 # Create UDP socket to use for sending (and receiving)
-sock = U.UdpComms(udpIP="127.0.0.1", portTX=8000, portRX=8001, enableRX=True, suppressWarnings=True)
+sock = U.UdpComms(udpIP="127.0.0.1", portTX=8000, portRX=8001, enableRX=True, suppressWarnings=False)
 
 A = GPS_Direction_Logic.GPS_Direction_Logic(1)
 
