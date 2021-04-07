@@ -2,11 +2,15 @@ import GPS_Direction_Logic
 from threading import Thread, Lock
 import UdpComms as U
 import time
-Mutex = Lock()
-# Create UDP socket to use for sending (and receiving)
-sock = U.UdpComms(udpIP="127.0.0.1", portTX=8000, portRX=8001, enableRX=True, suppressWarnings=False)
+import Data_Reader_Library
 
-A = GPS_Direction_Logic.GPS_Direction_Logic(1)
+# Create UDP socket to use for sending (and receiving)
+
+#f = open("GPS_Interface.txt", "r")
+sock = U.UdpComms(udpIP="127.0.0.1", portTX=8000, portRX=8001, enableRX=True, suppressWarnings=False)
+Datareader = Data_Reader_Library.Datareader(Data_Reader_Library.read_from_UDP, sock)
+
+A = GPS_Direction_Logic.GPS_Direction_Logic(1, Datareader)
 
 while True:
     sentdata = A.plot_course()

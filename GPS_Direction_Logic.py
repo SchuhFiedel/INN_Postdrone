@@ -4,30 +4,15 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from threading import Thread, Lock
 import time
+from Data_Reader_Library import Datareader
 
 
 # Merken, 1ster Wert = Y, 2ter Wert = x für GPS
 class GPS_Direction_Logic:
-    def __init__(self, offset: float):
+    def __init__(self, offset: float, dr:Datareader):
+        self.Reader = dr
         self.Target_position = self.update_target()
         self.__Offset = offset
-        #self.Own_position = self.update_position()
-        #self.Update_Thread = Thread(target=self.loop_update_target, args=())
-        #self.Update_Thread.start()
-
-    def update_Offset(self,  offset: float):
-        self.__Offset = offset
-    def update_Position(self, Position: list):
-        self.__Current_Position = Position
-
-
-    #Coninously update the self position
-    # def loop_update_target(self):
-    #     while self.Active == 1:
-    #         self.Mutex.acquire()
-    #         self.Current_Position = self.update_position()
-    #         self.Mutex.release()
-    #         time.sleep(0.1)
 
     #get the new target from Update_target
     def update_target(self):
@@ -43,13 +28,9 @@ class GPS_Direction_Logic:
                 return "some default data"
             raise e
 
-
     def update_position(self):
         try:
-            target_fp = open("GPS_Interface.txt", "rt")
-            current_position_string = target_fp.read()
-            tmp = current_position_string.split(',')
-            self.__Current_Position = [tmp[0], tmp[1]]
+            self.__Current_Position = self.Reader.return_positional_data()
         except IOError as e:
             print("error")
             if e.errno == errno.EACCES:
@@ -101,22 +82,13 @@ class GPS_Direction_Logic:
             print("error", e)
             raise
 
-    #Print The calculated Angle to a file
-    def return_output(self, output: str):
-        try:
-            f = open("Output.txt", "wt")
-            f.write(output)
-        except TypeError as e:
-            print("error", e)
-            raise
-        return
     # general program object
     Active = 1
     GPS_FP = 0
 
 
     # initiate Vectors for movement
-    __Current_Position = [50,-24]
+    __Current_Position = []
     Target_position = []
     Movement = []  # Movementvector to reach target
     Angle_to_target = 0
@@ -144,7 +116,7 @@ class GPS_Direction_Logic:
         plt.show()
 
     def plot_course(self, should_display=False):
-       #self.update_position()
+        self.update_position()
         if type(should_display) != bool:
             raise AttributeError
         print(self.__Current_Position)
@@ -160,14 +132,10 @@ class GPS_Direction_Logic:
             raise
         try:
             movement_normalized = []
-            #print(self.Movement)
             movement_length = self.vector_length(self.Movement)
-            #print("VectorLength: ", type(movement_length), " ", movement_length)
             movement_normalized = self.vector_normalize(movement_length, self.Movement)
-            #print(movement_normalized)
-            #print(movement_normalized[0] * movement_length)
+            print(movement_normalized)
             movement_radiant = self.calc_rad(movement_length, self.Movement)
-            #print("Radiant: ", movement_radiant)
             movement_angle = self.rad_to_ang(movement_radiant, self.Movement)
 
             print("Angle: ", movement_angle)
