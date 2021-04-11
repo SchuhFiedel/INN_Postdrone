@@ -1,15 +1,13 @@
-from abc import ABC
+
 import UdpComms as U
 from threading import Thread, Lock
-import concurrent.futures
 import time
-import io
 
 
 class Datareader:
 
     returncode = []
-
+    Mutex = Lock
     def __init__(self, function, args):
         self.Function = function
         self.Args = args
@@ -17,33 +15,50 @@ class Datareader:
         return
 
     def thread_wrapper(self):
-        while self.active:
+        while self.Active:
+            self.Mutex.acquire(blocking=True)
             self.returncode = self.Function(self.Args)
+            self.Mutex.release()
             time.sleep(0.1)
 
     def read_positional_data(self):
         t = Thread(target=self.thread_wrapper)
-        print("Positional Reader with function: " + self.Function)
+        print("Positional Reader with function: " + str(self.Function))
         t.start()
 
     def return_positional_data(self):
-        return self.returncode
+        self.Mutex.acquire()
+        tmp = self.returncode
+        self.Mutex.release()
+        return tmp
+
 
     def deactivate(self):
         self.Active = False
 
 
-def read_from_UDP(Socket:U.UdpComms):
-    data = Socket.ReadReceivedData()  # read data
-    if data != None:  # if NEW data has been received since last ReadReceivedData function call
+def cast_list(test_list, data_type):
+    return list(map(data_type, test_list))
+
+
+def read_from_udp(socket: U.UdpComms):
+    data = socket.ReadReceivedData()  # read data
+    if data is not None:  # if NEW data has been received since last ReadReceivedData function call
         print(data)  # print new received data
-        returnval = data.split(",")
-        return returnval
+        return_value = data.split(",")
+        return cast_list(return_value, float)
     return None
 
 
-def read_from_UDP(fp):
+def read_from_file(fp):
     read_string = fp.read()
     read_string = read_string.split(",")
     fp.seek(0)
-    return read_string
+    return cast_list(read_string, float)
+
+
+def read_from_console():
+    val1 = float(input("Enter Longitude "))
+    val2 = float(input("Enter Lattitude "))
+    return_value = [val1, val2]
+    return return_value
