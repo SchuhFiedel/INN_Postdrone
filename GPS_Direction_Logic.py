@@ -5,16 +5,20 @@ import matplotlib.pyplot as plt
 
 import time
 import math
-from Data_Reader_Library import Datareader
-
+from Data_Reader_Library import DataReader
+from Data_Writer_Library import DataWriter
 
 # Merken, 1ster Wert = Y, 2ter Wert = x für GPS
+
+
 class GPS_Direction_Logic:
-    def __init__(self, offset: float, dr:Datareader):
+    def __init__(self, offset: float, dr: DataReader, dw: DataWriter):
         self.Reader = dr
+        self.Writer = dw
         self.__Target_position = self.update_target()
         self.__Offset = offset
         self.Reader.read_positional_data()
+        self.Writer.send_positional_data()
         time.sleep(1)
 
     #get the new target from Update_target
@@ -64,26 +68,26 @@ class GPS_Direction_Logic:
             raise
 
     #Calculate Radion of a Vector
-    def calc_rad(self, vector_len, movement_vector):
-        try:
-            y_val = movement_vector[0] / vector_len
-            #print("Y_Val", y_val)
-            return_value = np.arccos(y_val)
-            return return_value
-        except TypeError as e:
-            print("error", e)
-            raise
+    # def calc_rad(self, vector_len, movement_vector):
+    #     try:
+    #         y_val = movement_vector[0] / vector_len
+    #         #print("Y_Val", y_val)
+    #         return_value = np.arccos(y_val)
+    #         return return_value
+    #     except TypeError as e:
+    #         print("error", e)
+    #         raise
     #convert Radian to degree
-    def rad_to_ang(self, vector_rad, movement_vector):
-        try:
-            returnval = np.rad2deg(vector_rad)
-            if movement_vector[1] < 0:
-                returnval = abs(returnval - 360)
-            # Wenn wir mir Einheitskreis rechenn dann muss der Returnval + 90 modulo 360
-            return returnval
-        except TypeError as e:
-            print("error", e)
-            raise
+    # def rad_to_ang(self, vector_rad, movement_vector):
+    #     try:
+    #         returnval = np.rad2deg(vector_rad)
+    #         if movement_vector[1] < 0:
+    #             returnval = abs(returnval - 360)
+    #         # Wenn wir mir Einheitskreis rechenn dann muss der Returnval + 90 modulo 360
+    #         return returnval
+    #     except TypeError as e:
+    #         print("error", e)
+    #         raise
 
     # general program object
     Active = 1
@@ -148,5 +152,6 @@ class GPS_Direction_Logic:
                 self.__Target_position[1]+self.__Offset>self.__Current_Position[1] > self.__Target_position[1]-self.__Offset):
             return -1
         print("Angle: ", self.__Angle_to_target)
+        self.Writer.set_positon(self.__Angle_to_target)
         return self.__Angle_to_target
 

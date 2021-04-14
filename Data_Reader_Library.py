@@ -4,10 +4,10 @@ from threading import Thread, Lock
 import time
 
 
-class Datareader:
+class DataReader:
 
     returncode = []
-    Mutex = Lock
+    Mutex = Lock()
     def __init__(self, function, args):
         self.Function = function
         self.Args = args
@@ -51,14 +51,20 @@ def read_from_udp(socket: U.UdpComms):
 
 
 def read_from_file(fp):
-    read_string = fp.read()
-    read_string = read_string.split(",")
-    fp.seek(0)
-    return cast_list(read_string, float)
+    try:
+        read_string = fp.read()
+        read_string = read_string.split(",")
+        fp.seek(0)
+        return cast_list(read_string, float)
+    except:
+        raise FileNotFoundError
 
 
 def read_from_console():
-    val1 = float(input("Enter Longitude "))
-    val2 = float(input("Enter Lattitude "))
-    return_value = [val1, val2]
-    return return_value
+    try:
+        val1 = float(input("Enter Longitude "))
+        val2 = float(input("Enter Lattitude "))
+        return_value = [val1, val2]
+        return return_value
+    except:
+        raise TypeError

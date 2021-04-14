@@ -1,14 +1,14 @@
 import GPS_Direction_Logic
 import UdpComms as U
 import Data_Reader_Library
-
+import Data_Writer_Library
 # Create UDP socket to use for sending (and receiving)
 
 f = open("GPS_Interface.txt", "r")
 sock = U.UdpComms(udpIP="127.0.0.1", portTX=8000, portRX=8001, enableRX=True, suppressWarnings=False)
-Datareader = Data_Reader_Library.Datareader(Data_Reader_Library.read_from_file, f)
-
-A = GPS_Direction_Logic.GPS_Direction_Logic(0, Datareader)
+Datareader = Data_Reader_Library.DataReader(Data_Reader_Library.read_from_file, f)
+Datawriter = Data_Writer_Library.DataWriter(Data_Writer_Library.send_to_UDP, sock)
+A = GPS_Direction_Logic.GPS_Direction_Logic(0, Datareader, Datawriter)
 print(A.plot_course())
 # while True:
 #     sentdata = A.plot_course()
