@@ -95,7 +95,7 @@ class GPS_Direction_Logic:
 
 
     # initiate Vectors for movement
-    __Current_Position = [0,0]
+    __Current_Position = [0, 0]
     __Target_position = []
     __Movement = []  # Movementvector to reach target
     __Angle_to_target = 0
