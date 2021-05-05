@@ -9,6 +9,7 @@ sock = U.UdpComms(udpIP="127.0.0.1", portTX=8000, portRX=8001, enableRX=True, su
 Datareader = Data_Reader_Library.DataReader(Data_Reader_Library.read_from_udp, sock)
 Datawriter = Data_Writer_Library.DataWriter(Data_Writer_Library.send_to_UDP, sock)
 A = GPS_Direction_Logic.GPS_Direction_Logic(0, Datareader, Datawriter)
+A.thread_wrapper()
 print(A.plot_course())
 # while True:
 #     sentdata = A.plot_course()

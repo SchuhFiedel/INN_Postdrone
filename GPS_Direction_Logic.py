@@ -19,6 +19,7 @@ class GPS_Direction_Logic:
         self.__Offset = offset
         self.Reader.read_positional_data()
         self.Writer.send_positional_data()
+        self.Active = True
         time.sleep(1)
 
     #get the new target from Update_target
@@ -103,6 +104,11 @@ class GPS_Direction_Logic:
     #when the x, y Current Pos coordinates are close enough so target+offset>pos>target-offset
     __Offset = 0.2
 
+    def thread_wrapper(self):
+        while self.Active:
+            self.plot_course()
+
+
     def display_plot(self):
 
 
@@ -146,7 +152,7 @@ class GPS_Direction_Logic:
             print("error found")
         if should_display:
             self.display_plot()
-        self.Active = 0
+        #self.Active = 0
         if (self.__Target_position[0]+self.__Offset>self.__Current_Position[0] > self.__Target_position[0]-self.__Offset
                 and
                 self.__Target_position[1]+self.__Offset>self.__Current_Position[1] > self.__Target_position[1]-self.__Offset):
