@@ -9,12 +9,12 @@ class DataWriter:
         self.Function = function
         self.Args = args
         self.Active = True
-        self.CurrentPosition = float
+        self.CurrentPosition = 0.0
         return
 
     def thread_wrapper(self):
         while self.Active:
-            self.Mutex.acquire(self, blocking=True)
+            self.Mutex.acquire(blocking=True)
             self.returncode = self.Function(self.Args, self.CurrentPosition)
             self.Mutex.release()
             time.sleep(0.1)
@@ -24,7 +24,7 @@ class DataWriter:
         print("Positional Reader with function: " + str(self.Function))
         t.start()
 
-    def set_positon(self, pass_position: list):
+    def set_positon(self, pass_position: float):
         self.Mutex.acquire()
         self.CurrentPosition = pass_position
         self.Mutex.release()
@@ -33,5 +33,6 @@ class DataWriter:
         self.Active = False
 
 
-def send_to_UDP(socket: U, dw: float):
+def send_to_UDP(socket: U, dw):
+        print(str(dw))
         socket.SendData(str(dw)) # Send this string to other application
