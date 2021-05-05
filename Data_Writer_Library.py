@@ -34,5 +34,5 @@ class DataWriter:
 
 
 def send_to_UDP(socket: U, dw):
-        print(str(dw))
+        #print(str(dw))
         socket.SendData(str(dw)) # Send this string to other application

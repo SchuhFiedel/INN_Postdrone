@@ -147,9 +147,11 @@ class GPS_Direction_Logic:
             movement_length = self.vector_length(self.__Movement)
             movement_normalized = self.vector_normalize(movement_length, self.__Movement)
             print(movement_normalized)
-            self.__Angle_to_target = math.atan2(self.__Movement[0],self.__Movement[1])*180/math.pi
-        except:
-            print("error found")
+            self.__Angle_to_target = math.atan2(self.__Movement[1],self.__Movement[0])*180/math.pi
+            if self.__Angle_to_target < 0:
+                self.__Angle_to_target += 360
+        except errno:
+            print(errno)
         if should_display:
             self.display_plot()
         #self.Active = 0
