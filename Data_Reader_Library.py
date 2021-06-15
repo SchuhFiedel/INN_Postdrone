@@ -54,7 +54,6 @@ def read_from_file(fp):
     try:
         read_string = fp.read()
         read_string = read_string.split(",")
-        fp.seek(0)
         return cast_list(read_string, float)
     except:
         raise FileNotFoundError

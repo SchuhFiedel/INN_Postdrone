@@ -7,14 +7,16 @@ import time
 import math
 from Data_Reader_Library import DataReader
 from Data_Writer_Library import DataWriter
+from HightController import HeightController
 
 # Merken, 1ster Wert = Y, 2ter Wert = x für GPS
 
 
 class GPS_Direction_Logic:
-    def __init__(self, offset: float, dr: DataReader, dw: DataWriter):
+    def __init__(self, offset: float, dr: DataReader, dw: DataWriter, hc: HeightController):
         self.Reader = dr
         self.Writer = dw
+
         self.__Target_position = self.update_target()
         self.__Offset = offset
         self.Reader.read_positional_data()
@@ -106,12 +108,20 @@ class GPS_Direction_Logic:
 
     def thread_wrapper(self):
         while self.Active:
-            self.plot_course()
+            self.main_logic()
 
+    def main_logic(self):
+        try:
+            self.plot_course()
+            if self.__Angle_to_target == -1:
+                self.update_target()
+            else:
+                self.Writer.set_positon(self.__Angle_to_target)
+        except errno:
+            print(errno)
+            raise errno
 
     def display_plot(self):
-
-
         d = {'Latitude': [self.__Current_Position[0], self.__Target_position[0]],
              'Longitude': [self.__Current_Position[1], self.__Target_position[1]]}
         df = pd.DataFrame(data=d)
@@ -132,7 +142,7 @@ class GPS_Direction_Logic:
         self.update_position()
         if type(should_display) != bool:
             raise AttributeError
-        print(self.__Current_Position)
+        #print(self.__Current_Position)
         # Calculate the Movement Vector
         try:
             self.__Movement = []
@@ -155,11 +165,8 @@ class GPS_Direction_Logic:
         if should_display:
             self.display_plot()
         #self.Active = 0
-        if (self.__Target_position[0]+self.__Offset>self.__Current_Position[0] > self.__Target_position[0]-self.__Offset
-                and
-                self.__Target_position[1]+self.__Offset>self.__Current_Position[1] > self.__Target_position[1]-self.__Offset):
+        if (movement_length < self.__Offset):
             return -1
         print("Angle: ", self.__Angle_to_target)
-        self.Writer.set_positon(self.__Angle_to_target)
         return self.__Angle_to_target
 
