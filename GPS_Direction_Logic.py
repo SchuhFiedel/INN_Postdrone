@@ -7,18 +7,19 @@ import time
 import math
 from Data_Reader_Library import DataReader
 from Data_Writer_Library import DataWriter
-from HightController import HeightController
+from HightController import AltitudeController
 
 # Merken, 1ster Wert = Y, 2ter Wert = x für GPS
 
 
 class GPS_Direction_Logic:
-    def __init__(self, offset: float, dr: DataReader, dw: DataWriter, hc: HeightController):
+    def __init__(self, offset: float, dr: DataReader, dw: DataWriter, hc: AltitudeController):
         self.Reader = dr
         self.Writer = dw
 
-        self.__Target_position = self.update_target()
+        self.__TargetPosition = self.update_target()
         self.__Offset = offset
+        self.Altitude = hc
         self.Reader.read_positional_data()
         self.Writer.send_positional_data()
         self.Active = True
@@ -99,7 +100,7 @@ class GPS_Direction_Logic:
 
     # initiate Vectors for movement
     __Current_Position = [0, 0]
-    __Target_position = []
+    __TargetPosition = []
     __Movement = []  # Movementvector to reach target
     __Angle_to_target = 0
 
@@ -109,21 +110,28 @@ class GPS_Direction_Logic:
     def thread_wrapper(self):
         while self.Active:
             self.main_logic()
+        else:
+            self.Writer.Active = False
+            self.Reader.Active = False
+            self.Altitude.Active = False
 
     def main_logic(self):
         try:
             self.plot_course()
             if self.__Angle_to_target == -1:
                 self.update_target()
+                if self.__TargetPosition[0] <361:
+                    self.Active= False
             else:
                 self.Writer.set_positon(self.__Angle_to_target)
+
         except errno:
             print(errno)
             raise errno
 
     def display_plot(self):
-        d = {'Latitude': [self.__Current_Position[0], self.__Target_position[0]],
-             'Longitude': [self.__Current_Position[1], self.__Target_position[1]]}
+        d = {'Latitude': [self.__Current_Position[0], self.__TargetPosition[0]],
+             'Longitude': [self.__Current_Position[1], self.__TargetPosition[1]]}
         df = pd.DataFrame(data=d)
 
         # Plot Graph for easier Display
@@ -147,8 +155,8 @@ class GPS_Direction_Logic:
         try:
             self.__Movement = []
             # Calculate Movement(Velocity) vector
-            self.__Movement.append(self.__Target_position[0] - self.__Current_Position[0])
-            self.__Movement.append(self.__Target_position[1] - self.__Current_Position[1])
+            self.__Movement.append(self.__TargetPosition[0] - self.__Current_Position[0])
+            self.__Movement.append(self.__TargetPosition[1] - self.__Current_Position[1])
 
         except IOError as e:
             print("Error: ", e)
