@@ -1,0 +1,2 @@
+class PositionalFormat(Exception):
+    pass

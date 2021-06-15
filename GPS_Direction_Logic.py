@@ -8,6 +8,7 @@ import math
 from Data_Reader_Library import DataReader
 from Data_Writer_Library import DataWriter
 from HightController import AltitudeController
+import CustomExceptions
 
 # Merken, 1ster Wert = Y, 2ter Wert = x für GPS
 
@@ -57,8 +58,8 @@ class GPS_Direction_Logic:
             sumation = np.sqrt(sumation)
             return sumation
         except:
-            print("error")
-            raise
+            print("error" + errno)
+            raise errno
 
     #normalize the movement vector
     def vector_normalize(self, vector_len, vector):
@@ -68,8 +69,8 @@ class GPS_Direction_Logic:
                 return_values.append(number / vector_len)
             return return_values
         except:
-            print("error")
-            raise
+            print("error" + errno)
+            raise errno
 
     #Calculate Radion of a Vector
     # def calc_rad(self, vector_len, movement_vector):
@@ -117,7 +118,12 @@ class GPS_Direction_Logic:
 
     def main_logic(self):
         try:
+            self.update_position()
             self.plot_course()
+
+            if len(self.__Current_Position) > 2:
+                raise
+
             if self.__Angle_to_target == -1:
                 self.update_target()
                 if self.__TargetPosition[0] <361:
@@ -147,7 +153,7 @@ class GPS_Direction_Logic:
         plt.show()
 
     def plot_course(self, should_display=False):
-        self.update_position()
+
         if type(should_display) != bool:
             raise AttributeError
         #print(self.__Current_Position)

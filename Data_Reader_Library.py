@@ -2,7 +2,7 @@
 import UdpComms as U
 from threading import Thread, Lock
 import time
-
+import CustomExceptions
 
 class DataReader:
 
@@ -30,6 +30,8 @@ class DataReader:
         self.Mutex.acquire()
         tmp = self.returncode
         self.Mutex.release()
+        if len(tmp) != 3:
+            raise CustomExceptions.PositionalFormat
         return tmp
 
 
