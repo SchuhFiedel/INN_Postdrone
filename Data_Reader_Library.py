@@ -46,7 +46,7 @@ def cast_list(test_list, data_type):
 def read_from_udp(socket: U.UdpComms):
     data = socket.ReadReceivedData()  # read data
     if data is not None:  # if NEW data has been received since last ReadReceivedData function call
-        print(data)  # print new received data
+        #print(data)  # print new received data
         return_value = data.split(",")
         return cast_list(return_value, float)
     return None

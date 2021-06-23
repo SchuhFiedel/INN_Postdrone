@@ -17,7 +17,7 @@ class GPS_Direction_Logic:
     def __init__(self, offset: float, dr: DataReader, dw: DataWriter, hc: AltitudeController):
         self.Reader = dr
         self.Writer = dw
-
+        self.target_fp = open("Target.txt", "r")
         self.__TargetPosition = self.update_target()
         self.__Offset = offset
         self.Altitude = hc
@@ -29,10 +29,12 @@ class GPS_Direction_Logic:
     #get the new target from Update_target
     def update_target(self):
         try:
-            target_fp = open("Target.txt", "r")
-            current_position_string = target_fp.read()
+            current_position_string = self.target_fp.readline()
+            print("TargetPos ", current_position_string)
             x_local_position, y_local_position = current_position_string.split(',')
+            print("Targetx", x_local_position, "Targety", y_local_position)
             return_value = [float(x_local_position), float(y_local_position)]
+            self.__Angle_to_target = 0;
             return return_value
         except IOError as e:
             print("error")
@@ -121,14 +123,17 @@ class GPS_Direction_Logic:
             self.update_position()
             self.plot_course()
 
-            if len(self.__Current_Position) > 2:
-                raise
+            '''if len(self.__Current_Position) < 2:
+                raise 
+            '''
 
             if self.__Angle_to_target == -1:
-                self.update_target()
-                if self.__TargetPosition[0] <361:
-                    self.Active= False
+                self.__TargetPosition = self.update_target()
+                self.__Angle_to_target = 0
+                if self.__TargetPosition[0] > 361:
+                    self.Active = False
             else:
+                #print(self.__Angle_to_target)
                 self.Writer.set_positon(self.__Angle_to_target)
 
         except errno:
@@ -144,7 +149,7 @@ class GPS_Direction_Logic:
         BBox = (min(d['Longitude'])-0.002, max(d['Longitude'])+0.002, min(d['Latitude'])-0.002, max(d['Latitude'])+0.002)
         city_map = plt.imread("map.jpg")
         fig, ax = plt.subplots(figsize=(8, 7))
-        print(df)
+        #print(df)
         ax.scatter(df.Longitude, df.Latitude, s=10, c='red', alpha=1)
         ax.set_title('Waypoints Where we need to go')
         ax.set_xlim(BBox[0], BBox[1])
@@ -170,7 +175,7 @@ class GPS_Direction_Logic:
         try:
             movement_length = self.vector_length(self.__Movement)
             movement_normalized = self.vector_normalize(movement_length, self.__Movement)
-            print(movement_normalized)
+            #print(movement_normalized)
             self.__Angle_to_target = math.atan2(self.__Movement[1],self.__Movement[0])*180/math.pi
             if self.__Angle_to_target < 0:
                 self.__Angle_to_target += 360
@@ -180,7 +185,7 @@ class GPS_Direction_Logic:
             self.display_plot()
         #self.Active = 0
         if (movement_length < self.__Offset):
-            return -1
-        print("Angle: ", self.__Angle_to_target)
+            self.__Angle_to_target = -1
+        #print("Angle: ", self.__Angle_to_target)
         return self.__Angle_to_target
 
