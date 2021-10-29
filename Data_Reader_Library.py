@@ -1,13 +1,14 @@
-
 import UdpComms as U
 from threading import Thread, Lock
 import time
 import CustomExceptions
 
+
 class DataReader:
 
     returncode = []
     Mutex = Lock()
+
     def __init__(self, function, args):
         self.Function = function
         self.Args = args
@@ -34,7 +35,6 @@ class DataReader:
             raise CustomExceptions.PositionalFormat
         return tmp
 
-
     def deactivate(self):
         self.Active = False
 
@@ -45,8 +45,10 @@ def cast_list(test_list, data_type):
 
 def read_from_udp(socket: U.UdpComms):
     data = socket.ReadReceivedData()  # read data
-    if data is not None:  # if NEW data has been received since last ReadReceivedData function call
-        #print(data)  # print new received data
+    if (
+        data is not None
+    ):  # if NEW data has been received since last ReadReceivedData function call
+        # print(data)  # print new received data
         return_value = data.split(",")
         return cast_list(return_value, float)
     return None

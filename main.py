@@ -3,10 +3,18 @@ import UdpComms as U
 import Data_Reader_Library
 import Data_Writer_Library
 import HightController
+from dronekit import connect
+
+
 # Create UDP socket to use for sending (and receiving)
 
+vehicle = connect('tcp:127.0.0.1:5760', wait_ready=True)
+print(vehicle.location.global_relative_frame)
+exit()
 f = open("GPS_Interface.txt", "r")
-sock = U.UdpComms(udpIP="127.0.0.1", portTX=8000, portRX=8001, enableRX=True, suppressWarnings=False)
+sock = U.UdpComms(
+    udpIP="127.0.0.1", portTX=8000, portRX=8001, enableRX=True, suppressWarnings=False
+)
 Datareader = Data_Reader_Library.DataReader(Data_Reader_Library.read_from_udp, sock)
 Datawriter = Data_Writer_Library.DataWriter(Data_Writer_Library.send_to_UDP, sock)
 Hightcontroller = HightController.AltitudeController(3)

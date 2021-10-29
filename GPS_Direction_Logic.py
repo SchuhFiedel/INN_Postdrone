@@ -14,7 +14,9 @@ import CustomExceptions
 
 
 class GPS_Direction_Logic:
-    def __init__(self, offset: float, dr: DataReader, dw: DataWriter, hc: AltitudeController):
+    def __init__(
+        self, offset: float, dr: DataReader, dw: DataWriter, hc: AltitudeController
+    ):
         self.Reader = dr
         self.Writer = dw
         self.target_fp = open("Target.txt", "r")
@@ -26,15 +28,15 @@ class GPS_Direction_Logic:
         self.Active = True
         time.sleep(1)
 
-    #get the new target from Update_target
+    # get the new target from Update_target
     def update_target(self):
         try:
             current_position_string = self.target_fp.readline()
             print("TargetPos ", current_position_string)
-            x_local_position, y_local_position = current_position_string.split(',')
+            x_local_position, y_local_position = current_position_string.split(",")
             print("Targetx", x_local_position, "Targety", y_local_position)
             return_value = [float(x_local_position), float(y_local_position)]
-            self.__Angle_to_target = 0;
+            self.__Angle_to_target = 0
             return return_value
         except IOError as e:
             print("error")
@@ -63,7 +65,7 @@ class GPS_Direction_Logic:
             print("error" + errno)
             raise errno
 
-    #normalize the movement vector
+    # normalize the movement vector
     def vector_normalize(self, vector_len, vector):
         try:
             return_values = []
@@ -74,7 +76,7 @@ class GPS_Direction_Logic:
             print("error" + errno)
             raise errno
 
-    #Calculate Radion of a Vector
+    # Calculate Radion of a Vector
     # def calc_rad(self, vector_len, movement_vector):
     #     try:
     #         y_val = movement_vector[0] / vector_len
@@ -84,7 +86,7 @@ class GPS_Direction_Logic:
     #     except TypeError as e:
     #         print("error", e)
     #         raise
-    #convert Radian to degree
+    # convert Radian to degree
     # def rad_to_ang(self, vector_rad, movement_vector):
     #     try:
     #         returnval = np.rad2deg(vector_rad)
@@ -100,14 +102,13 @@ class GPS_Direction_Logic:
     Active = 1
     GPS_FP = 0
 
-
     # initiate Vectors for movement
     __Current_Position = [0, 0]
     __TargetPosition = []
     __Movement = []  # Movementvector to reach target
     __Angle_to_target = 0
 
-    #when the x, y Current Pos coordinates are close enough so target+offset>pos>target-offset
+    # when the x, y Current Pos coordinates are close enough so target+offset>pos>target-offset
     __Offset = 0.2
 
     def thread_wrapper(self):
@@ -123,9 +124,9 @@ class GPS_Direction_Logic:
             self.update_position()
             self.plot_course()
 
-            '''if len(self.__Current_Position) < 2:
+            """if len(self.__Current_Position) < 2:
                 raise 
-            '''
+            """
 
             if self.__Angle_to_target == -1:
                 self.__TargetPosition = self.update_target()
@@ -133,7 +134,7 @@ class GPS_Direction_Logic:
                 if self.__TargetPosition[0] > 361:
                     self.Active = False
             else:
-                #print(self.__Angle_to_target)
+                # print(self.__Angle_to_target)
                 self.Writer.set_positon(self.__Angle_to_target)
 
         except errno:
@@ -141,17 +142,24 @@ class GPS_Direction_Logic:
             raise errno
 
     def display_plot(self):
-        d = {'Latitude': [self.__Current_Position[0], self.__TargetPosition[0]],
-             'Longitude': [self.__Current_Position[1], self.__TargetPosition[1]]}
+        d = {
+            "Latitude": [self.__Current_Position[0], self.__TargetPosition[0]],
+            "Longitude": [self.__Current_Position[1], self.__TargetPosition[1]],
+        }
         df = pd.DataFrame(data=d)
 
         # Plot Graph for easier Display
-        BBox = (min(d['Longitude'])-0.002, max(d['Longitude'])+0.002, min(d['Latitude'])-0.002, max(d['Latitude'])+0.002)
+        BBox = (
+            min(d["Longitude"]) - 0.002,
+            max(d["Longitude"]) + 0.002,
+            min(d["Latitude"]) - 0.002,
+            max(d["Latitude"]) + 0.002,
+        )
         city_map = plt.imread("map.jpg")
         fig, ax = plt.subplots(figsize=(8, 7))
-        #print(df)
-        ax.scatter(df.Longitude, df.Latitude, s=10, c='red', alpha=1)
-        ax.set_title('Waypoints Where we need to go')
+        # print(df)
+        ax.scatter(df.Longitude, df.Latitude, s=10, c="red", alpha=1)
+        ax.set_title("Waypoints Where we need to go")
         ax.set_xlim(BBox[0], BBox[1])
         ax.set_ylim(BBox[2], BBox[3])
         ax.imshow(city_map, zorder=0, extent=BBox)
@@ -161,31 +169,38 @@ class GPS_Direction_Logic:
 
         if type(should_display) != bool:
             raise AttributeError
-        #print(self.__Current_Position)
+        # print(self.__Current_Position)
         # Calculate the Movement Vector
         try:
             self.__Movement = []
             # Calculate Movement(Velocity) vector
-            self.__Movement.append(self.__TargetPosition[0] - self.__Current_Position[0])
-            self.__Movement.append(self.__TargetPosition[1] - self.__Current_Position[1])
+            self.__Movement.append(
+                self.__TargetPosition[0] - self.__Current_Position[0]
+            )
+            self.__Movement.append(
+                self.__TargetPosition[1] - self.__Current_Position[1]
+            )
 
         except IOError as e:
             print("Error: ", e)
             raise
         try:
             movement_length = self.vector_length(self.__Movement)
-            movement_normalized = self.vector_normalize(movement_length, self.__Movement)
-            #print(movement_normalized)
-            self.__Angle_to_target = math.atan2(self.__Movement[1],self.__Movement[0])*180/math.pi
+            movement_normalized = self.vector_normalize(
+                movement_length, self.__Movement
+            )
+            # print(movement_normalized)
+            self.__Angle_to_target = (
+                math.atan2(self.__Movement[1], self.__Movement[0]) * 180 / math.pi
+            )
             if self.__Angle_to_target < 0:
                 self.__Angle_to_target += 360
         except errno:
             print(errno)
         if should_display:
             self.display_plot()
-        #self.Active = 0
-        if (movement_length < self.__Offset):
+        # self.Active = 0
+        if movement_length < self.__Offset:
             self.__Angle_to_target = -1
-        #print("Angle: ", self.__Angle_to_target)
+        # print("Angle: ", self.__Angle_to_target)
         return self.__Angle_to_target
-

@@ -2,6 +2,7 @@ import time
 from threading import Thread, Lock
 from UdpComms import UdpComms as U
 
+
 class DataWriter:
     Mutex = Lock()
 
@@ -34,5 +35,5 @@ class DataWriter:
 
 
 def send_to_UDP(socket: U, dw):
-        #print(str(dw))
-        socket.SendData(str(dw)) # Send this string to other application
+    # print(str(dw))
+    socket.SendData(str(dw))  # Send this string to other application
