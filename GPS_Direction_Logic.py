@@ -201,6 +201,10 @@ class GPS_Direction_Logic:
                     if self.__is_within_offset():
                         break
 
+            self.vehicle.mode = VehicleMode("LAND")
+
+            # Close vehicle object
+            self.vehicle.close()
 
         except APIException:
             raise APIException
